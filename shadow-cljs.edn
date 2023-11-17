@@ -6,8 +6,11 @@
   "src/js"]
 
  :dependencies
- [[re-frame "1.4.0"]
-  [reagent "1.1.1"]]
+ [[cider/cider-nrepl "0.28.6"]
+  [org.slf4j/slf4j-nop "1.7.36"]
+  [re-frame "1.4.0"]
+  [reagent "1.1.1"]
+  [refactor-nrepl "3.5.5"]]
 
  :dev-http
  {8020 "public"}

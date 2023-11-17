@@ -3,10 +3,11 @@
    [re-frame.core :as rf]
    [reagent.dom :as rd]
    ["./front-end-api" :as fungus-api]
-   ))
+   [fungus-friends :as ff]))
 
 (defn- hello-world []
-  [:ul
+  [ff/page]
+  #_[:ul
    [:li "Hello"]
    [:li {:style {:color "red"}} "World!"]])
 
