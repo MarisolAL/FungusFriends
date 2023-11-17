@@ -19,9 +19,4 @@
    :asset-path "/js"
    :modules
    {:main ; becomes public/js/main.js
-    {:init-fn browser/init}}
-   :foreign-libs
-   {:js
-    {:provides ["fungus-api.ts"]
-     :js-module
-     {:front-end-api "./src/typescript/front-end-api.js"}}}}}}
+    {:init-fn core/init}}}}}

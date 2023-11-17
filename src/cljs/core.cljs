@@ -1,4 +1,4 @@
-(ns browser
+(ns core
   (:require
    [re-frame.core :as rf]
    [reagent.dom :as rd]
