@@ -2,20 +2,57 @@
   (:require
    [re-frame.core :as rf]
    [reagent.dom :as rd]
+   [reagent.core :as rg]
    ["./front-end-api" :as fungus-api]
-   [fungus-friends :as ff]))
+   [fungus-friends :as ff]
+   [components.leaflet-map.views :as l-map]))
+
+(def geometries (atom [{:type        :polygon ;; Las figuras a pintar, poner hongos aqui
+                        :coordinates [[65.1 25.2]
+                                      [65.15 25.2]
+                                      [65.125 25.3]]
+                        :popup-msg   "Polygon"
+                        :color       "#E3C2E5"}
+
+                       {:type        :line
+                        :coordinates [[65.3 25.0]
+                                      [65.4 25.5]]
+                        :popup-msg   "Line"
+                        :color       "#431E70"}
+                       {:type        :icon
+                        :icon-url    "/img/dimitri.jpg"
+                        :coordinates [[65.1 25.2]]
+                        :popup-msg   "Icon"}]))
+
+(def view-position (atom [65.1 25.2]))
+(def zoom-level (atom 8))
+
+(defn demo []
+  (fn []
+    [:div {:style {:width  "400px"
+                   :height "400px"}}
+     [l-map/leaflet {:id         "kartta"
+                     :width      "400px"
+                     :height     "400px"
+                     :view       view-position
+                     :zoom       zoom-level
+                     :layers     [{:type        :tile
+                                   :url         "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                   :attribution "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>"}]
+                     :geometries geometries}]]))
+
 
 (defn- hello-world []
-  [ff/page]
-  #_[:ul
-   [:li "Hello"]
-   [:li {:style {:color "red"}} "World!"]])
+  [:div
+   [ff/page]
+   [demo]])
+
 
 ;; start is called by init and after code reloading finishes
 (defn ^:dev/after-load start []
-  (let [_ (rf/subscribe [:time-zones])
-        _ (println "f" fungus-api)]
-    (rd/render [hello-world] (js/document.getElementById "app"))))
+  (let [_ (println "f" fungus-api)]
+    (rd/render [hello-world] (js/document.getElementById "app"))
+    ))
 
 
 
