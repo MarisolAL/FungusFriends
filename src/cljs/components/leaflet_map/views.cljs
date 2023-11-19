@@ -1,6 +1,6 @@
 (ns components.leaflet-map.views
   (:require
-   ;;["leaflet" :as leaflet]
+   ["leaflet" :as leaflet]
    [reagent.core :as rg]))
 
 
@@ -23,13 +23,12 @@
                10
                #js {:color color}))
 
-#_(defmethod create-shape :icon [{:keys [coordinates icon-url]
+(defmethod create-shape :icon [{:keys [coordinates icon-url]
                                 :or   {icon-url "non-existent.jpg"}}]
   (let [icon (.icon js/L #js {:iconUrl     icon-url
                               :iconSize    #js [38 38]
                               :iconAnchor  #js [22 94]
-                              :popupAnchor #js [(- 3) (- 76)]})
-        _ (println "Added icon")]
+                              :popupAnchor #js [(- 3) (- 76)]})]
     (.marker js/L (clj->js (first coordinates)) #js {:icon icon})))
 
 
@@ -103,7 +102,7 @@
                (when (not= old-zoom new-zoom)
                  (.setZoom leaflet new-zoom)))))
 
-(defn- mount-leaflet-map
+(defn mount-leaflet-map
   "Initialize LeafletJS map for a newly mounted map component."
   [data-atm]
   (let [{:keys [layers id geometries
@@ -126,17 +125,17 @@
                  (fn [_ _ _ new-geometries]
                    (update-leaflet-geometries data-atm new-geometries))))))
 
-(defn- update-leaflet-map [data-atm]
+(defn update-leaflet-map [data-atm]
   (update-leaflet-geometries data-atm (-> data-atm rg/state
                                           :mapspec :geometries
                                           deref)))
 
-(defn- leaflet-render
+(defn leaflet-render
   "Render function for a leaflet map."
   [data-atm]
   (let [{map-id     :id
          map-width  :width
-         map-height :heigth} (-> data-atm rg/state :mapspec)]
+         map-height :height} (-> data-atm rg/state :mapspec)]
     [:div {:id    map-id
            :style {:width  map-width
                    :height map-height}}]))
@@ -145,7 +144,7 @@
   "A LeafletJS map component."
   [mapspec]
   (rg/create-class
-   {:get-initial-state     (fn [_] {:mapspec mapspec})
-    :component-did-mount   mount-leaflet-map
-    :component-will-update update-leaflet-map
-    :render                leaflet-render}))
+   {:get-initial-state    (fn [_] {:mapspec mapspec})
+    :component-did-mount  mount-leaflet-map
+    :component-did-update update-leaflet-map
+    :render               leaflet-render}))

@@ -32,16 +32,14 @@
     [:div {:style {:width  "400px"
                    :height "400px"}}
      [l-map/leaflet {:id         "kartta"
-                     :width      "60%"
-                     :height     "50%"
+                     :width      "400px"
+                     :height     "400px"
                      :view       view-position
                      :zoom       zoom-level
                      :layers     [{:type        :tile
-                                   :url         "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-                                   :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]
-                     :geometries geometries
-                     ;; :on-click   #(println "map clicked")
-                     }]]))
+                                   :url         "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                   :attribution "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>"}]
+                     :geometries geometries}]]))
 
 
 (defn- hello-world []
