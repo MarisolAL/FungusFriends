@@ -6,33 +6,62 @@
 
 (defmulti create-shape :type)
 
-(defmethod create-shape :polygon [{:keys [coordinates]}]
+(defmethod create-shape :polygon [{:keys [coordinates color]
+                                   :or   {color "#D0376C"}}]
   (js/L.polygon (clj->js coordinates)
-                        #js {:color "red"
-                             :fillOpacity 0.5}))
+                #js {:color       color
+                     :fillOpacity 0.5}))
 
-(defmethod create-shape :line [{:keys [coordinates]}]
+(defmethod create-shape :line [{:keys [coordinates color]
+                                :or   {color "#D0376C"}}]
   (js/L.polyline (clj->js coordinates)
-                 #js {:color "blue"}))
+                 #js {:color color}))
 
-(defmethod create-shape :point [{:keys [coordinates]}]
+(defmethod create-shape :point [{:keys [coordinates color]
+                                 :or   {color "#D0376C"}}]
   (js/L.circle (clj->js (first coordinates))
                10
-               #js {:color "green"}))
+               #js {:color color}))
 
-(defn- update-leaflet-geometries
-  "Updates the Leaflet layers based on the data, mutates the LeafletJS map object."
+#_(def icon-type
+  (.extend
+   (js/L.icon)
+   #js
+   {:options
+    #js
+    {:shadowUrl    "leaf-shadow.png",
+     :iconSize     #js [38 95],
+     :shadowSize   #js [50 64],
+     :iconAnchor   #js [22 94],
+     :shadowAnchor #js [4 62],
+     :popupAnchor  #js [(- 3) (- 76)]}}))
+
+#_(defmethod create-shape :icon [{:keys [coordinates]}]
+  (let [icon (new icon-type #js {:iconUrl "leaf-green.png"})
+        _ (println icon)]
+    (js/L.icon (clj->js (first coordinates))
+               10
+               #js {:shadowUrl    "leaf-shadow.png",
+                    :iconSize     #js [38 95],
+                    :shadowSize   #js [50 64],
+                    :iconAnchor   #js [22 94],
+                    :shadowAnchor #js [4 62],
+                    :popupAnchor  #js [(- 3) (- 76)]})))
+
+
+(defn- remove-layers
+  "Removes all shape objects that are required to."
+  [{:keys [leaflet geometries-set geometries-map]}]
+  (doseq [removed-shape (keep (fn [[geom shape]]
+                                (when-not (geometries-set geom)
+                                  shape))
+                              geometries-map)]
+    (.removeLayer leaflet removed-shape)))
+
+(defn- add-new-shapes
+  "Adds new required shapes to the map."
   [component-atm geometries]
-  (let [{:keys [leaflet geometries-map]} (rg/state component-atm)
-        geometries-set                   (into #{} geometries)]
-    ;; Remove all LeafletJS shape objects that are no longer in the new geometries
-    (doseq [removed (keep (fn [[geom shape]]
-                            (when-not (geometries-set geom)
-                              shape))
-                          geometries-map)]
-      (.removeLayer leaflet removed))
-
-    ;; Create new shapes for new geometries and update the geometries map
+  (let [{:keys [leaflet geometries-map]} (rg/state component-atm)]
     (loop [new-geometries-map  {}
            [geom & geometries] geometries]
       (if-not geom
@@ -43,51 +72,70 @@
           (recur (assoc new-geometries-map geom existing-shape) geometries)
 
           ;; No existing shape, create a new shape and add it to the map
-          (let [shape (create-shape geom)]
+          (let [shape (create-shape geom)
+                popup-msg (:popup-msg geom)]
             (.addTo shape leaflet)
+            (when popup-msg
+              (.bindPopup shape popup-msg))
             (recur (assoc new-geometries-map geom shape) geometries)))))))
+
+(defn- update-leaflet-geometries
+  "Updates the Leaflet layers based on the data, mutates the LeafletJS map object."
+  [component-atm geometries]
+  (let [{:keys [leaflet geometries-map]} (rg/state component-atm)
+        geometries-set                   (into #{} geometries)]
+    (remove-layers {:leaflet        leaflet
+                    :geometries-set geometries-set
+                    :geometries-map geometries-map})
+    (add-new-shapes component-atm geometries)))
+
+(defn- add-layers
+  "Function that adds all the layers to the map"
+  [leaflet layers]
+  (doseq [{:keys [type url attribution]} layers]
+    (let [_ (println type)
+          layer (case type
+                  :tile (js/L.tileLayer
+                         url
+                         (clj->js {:attribution attribution}))
+                  :wms  (js/L.tileLayer.wms
+                         url
+                         (clj->js {:format      "image/png"
+                                   :fillOpacity 1.0})))]
+      (.addTo layer leaflet))))
+
+(defn- add-map-controllers
+  "Adds zoom and movement controllers to the map."
+  [leaflet {:keys [zoom view]}]
+  (.on leaflet "move" (fn [_]
+                        (let [c (.getCenter leaflet)]
+                          (reset! zoom (.getZoom leaflet))
+                          (reset! view [(.-lat c) (.-lng c)]))))
+  (add-watch view ::view-update
+             (fn [_ _ old-view new-view]
+               (when (not= old-view new-view)
+                 (.setView leaflet (clj->js new-view) @zoom))))
+  (add-watch zoom ::zoom-update
+             (fn [_ _ old-zoom new-zoom]
+               (when (not= old-zoom new-zoom)
+                 (.setZoom leaflet new-zoom)))))
 
 (defn- mount-leaflet-map
   "Initialize LeafletJS map for a newly mounted map component."
   [data-atm]
   (let [{:keys [layers id geometries
                 view zoom on-click]} (:mapspec (rg/state data-atm))
-        leaflet                      (js/L.map id)
-        _ (println @view)]
+        leaflet                      (js/L.map id)]
     (.setView leaflet (clj->js @view) @zoom)
-    (doseq [{:keys [type url attribution]} layers] ;; Adds all the layers to the map
-      (let [layer (case type
-                    :tile (js/L.tileLayer
-                           url
-                           (clj->js {:attribution attribution}))
-                    :wms  (js/L.tileLayer.wms
-                           url
-                           (clj->js {:format      "image/png"
-                                     :fillOpacity 1.0})))]
-        (.addTo layer leaflet)))
+    (add-layers leaflet layers)
     (rg/set-state data-atm {:leaflet        leaflet
                             :geometries-map {}})
-
-    ;; If mapspec defines callbacks, bind them to leaflet
     (when on-click
       (.on leaflet "click" (fn [e]
                              (on-click [(-> e .-latlng .-lat)
-                                        (-> e .-latlng .-lng)])))) ;; Cuando se pincha el mapa
-
-    ;; Add callback for leaflet pos/zoom changes
-    ;; watcher for pos/zoom atoms
-    (.on leaflet "move" (fn [e]
-                          (let [c (.getCenter leaflet)]
-                            (reset! zoom (.getZoom leaflet))
-                            (reset! view [(.-lat c) (.-lng c)]))))
-    (add-watch view ::view-update
-               (fn [_ _ old-view new-view]
-                 (when (not= old-view new-view)
-                   (.setView leaflet (clj->js new-view) @zoom))))
-    (add-watch zoom ::zoom-update
-               (fn [_ _ old-zoom new-zoom]
-                 (when (not= old-zoom new-zoom)
-                   (.setZoom leaflet new-zoom))))
+                                        (-> e .-latlng .-lng)])))) ;;TODO Cuando se pincha el mapa
+    (add-map-controllers leaflet {:zoom zoom
+                                  :view view})
     ;; If the mapspec has an atom containing geometries, add watcher
     ;; so that we update all LeafletJS objects
     (when geometries
@@ -109,18 +157,6 @@
     [:div {:id    map-id
            :style {:width  map-width
                    :height map-height}}]))
-
-;;;;;;;;;;
-;; Code to sync ClojureScript geometries vector data to LeafletJS
-;; shape objects.
-
-
-
-
-
-
-;;;;;;;;;
-;; The LeafletJS Reagent component.
 
 (defn leaflet
   "A LeafletJS map component."

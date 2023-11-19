@@ -8,14 +8,21 @@
    [fungus-friends :as ff]
    [components.leaflet-map.views :as l-map]))
 
-(def geometries (atom [{:type :polygon ;; Las figuras a pintar, poner hongos aqui
+(def geometries (atom [{:type        :polygon ;; Las figuras a pintar, poner hongos aqui
                         :coordinates [[65.1 25.2]
                                       [65.15 25.2]
-                                      [65.125 25.3]]}
+                                      [65.125 25.3]]
+                        :popup-msg   "Polygon"
+                        :color       "#E3C2E5"}
 
-                       {:type :line
+                       {:type        :line
                         :coordinates [[65.3 25.0]
-                                      [65.4 25.5]]}]))
+                                      [65.4 25.5]]
+                        :popup-msg   "Line"
+                        :color       "#431E70"}
+                       #_{:type        :icon
+                          :coordinates [[75.3 25.0]
+                                        [65.4 25.5]]}]))
 
 (def view-position (atom [65.1 25.2]))
 (def zoom-level (atom 8))
@@ -50,12 +57,7 @@
                        :geometries geometries
 
                        ;; Add handler for map clicks
-                       :on-click #(println "map clicked")}]
-       #_[:div.actions
-        "Control the map zoom by swap!ing the atoms"
-        [:br]
-        [:button {:on-click #(swap! zoom-level inc)} "zoom in"]
-        [:button {:on-click #(swap! zoom-level dec)} "zoom out"]]])))
+                       :on-click #(println "map clicked")}]])))
 
 
 
