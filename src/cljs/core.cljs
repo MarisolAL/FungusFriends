@@ -1,6 +1,5 @@
 (ns core
   (:require
-   ["leaflet" :as leaflet]
    [re-frame.core :as rf]
    [reagent.dom :as rd]
    [reagent.core :as rg]
@@ -20,51 +19,41 @@
                                       [65.4 25.5]]
                         :popup-msg   "Line"
                         :color       "#431E70"}
-                       #_{:type        :icon
-                          :coordinates [[75.3 25.0]
-                                        [65.4 25.5]]}]))
+                       {:type        :icon
+                        :icon-url    "/img/dimitri.jpg"
+                        :coordinates [[65.1 25.2]]
+                        :popup-msg   "Icon"}]))
 
 (def view-position (atom [65.1 25.2]))
 (def zoom-level (atom 8))
 
-(defn- hello-world []
-  (let [_ (println )]
-    [:div
-     [ff/page]
-     ;;[l-map/create-map]
-     ])
-  #_[:ul
-     [:li "Hello"]
-     [:li {:style {:color "red"}} "World!"]])
-
 (defn demo []
-  (let [_ (println @view-position @zoom-level)]
-    (fn []
-      [:div
-       [l-map/leaflet {:id     "kartta"
-                       :width  "60%"
-                       :height "50%"
-                       :view   view-position
-                       :zoom   zoom-level
+  (fn []
+    [:div {:style {:width  "400px"
+                   :height "400px"}}
+     [l-map/leaflet {:id         "kartta"
+                     :width      "60%"
+                     :height     "50%"
+                     :view       view-position
+                     :zoom       zoom-level
+                     :layers     [{:type        :tile
+                                   :url         "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+                                   :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]
+                     :geometries geometries
+                     ;; :on-click   #(println "map clicked")
+                     }]]))
 
-                       ;; The actual map data (tile layers from OpenStreetMap), also supported is
-                       ;; :wms type
-                       :layers [{:type        :tile
-                                 :url         "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-                                 :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]
 
-                       ;; Geometry shapes to draw to the map
-                       :geometries geometries
-
-                       ;; Add handler for map clicks
-                       :on-click #(println "map clicked")}]])))
-
+(defn- hello-world []
+  [:div
+   [ff/page]
+   [demo]])
 
 
 ;; start is called by init and after code reloading finishes
 (defn ^:dev/after-load start []
   (let [_ (println "f" fungus-api)]
-    (rd/render [demo] (js/document.getElementById "app"))
+    (rd/render [hello-world] (js/document.getElementById "app"))
     ))
 
 

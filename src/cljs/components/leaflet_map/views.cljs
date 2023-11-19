@@ -23,30 +23,14 @@
                10
                #js {:color color}))
 
-#_(def icon-type
-  (.extend
-   (js/L.icon)
-   #js
-   {:options
-    #js
-    {:shadowUrl    "leaf-shadow.png",
-     :iconSize     #js [38 95],
-     :shadowSize   #js [50 64],
-     :iconAnchor   #js [22 94],
-     :shadowAnchor #js [4 62],
-     :popupAnchor  #js [(- 3) (- 76)]}}))
-
-#_(defmethod create-shape :icon [{:keys [coordinates]}]
-  (let [icon (new icon-type #js {:iconUrl "leaf-green.png"})
-        _ (println icon)]
-    (js/L.icon (clj->js (first coordinates))
-               10
-               #js {:shadowUrl    "leaf-shadow.png",
-                    :iconSize     #js [38 95],
-                    :shadowSize   #js [50 64],
-                    :iconAnchor   #js [22 94],
-                    :shadowAnchor #js [4 62],
-                    :popupAnchor  #js [(- 3) (- 76)]})))
+#_(defmethod create-shape :icon [{:keys [coordinates icon-url]
+                                :or   {icon-url "non-existent.jpg"}}]
+  (let [icon (.icon js/L #js {:iconUrl     icon-url
+                              :iconSize    #js [38 38]
+                              :iconAnchor  #js [22 94]
+                              :popupAnchor #js [(- 3) (- 76)]})
+        _ (println "Added icon")]
+    (.marker js/L (clj->js (first coordinates)) #js {:icon icon})))
 
 
 (defn- remove-layers
@@ -72,7 +56,7 @@
           (recur (assoc new-geometries-map geom existing-shape) geometries)
 
           ;; No existing shape, create a new shape and add it to the map
-          (let [shape (create-shape geom)
+          (let [shape     (create-shape geom)
                 popup-msg (:popup-msg geom)]
             (.addTo shape leaflet)
             (when popup-msg
@@ -93,8 +77,7 @@
   "Function that adds all the layers to the map"
   [leaflet layers]
   (doseq [{:keys [type url attribution]} layers]
-    (let [_ (println type)
-          layer (case type
+    (let [layer (case type
                   :tile (js/L.tileLayer
                          url
                          (clj->js {:attribution attribution}))
