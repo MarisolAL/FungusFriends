@@ -112,10 +112,10 @@
     (add-layers leaflet layers)
     (rg/set-state data-atm {:leaflet        leaflet
                             :geometries-map {}})
-    (when on-click
-      (.on leaflet "click" (fn [e]
-                             (on-click [(-> e .-latlng .-lat)
-                                        (-> e .-latlng .-lng)])))) ;;TODO Cuando se pincha el mapa
+    #_(when on-click
+        (.on leaflet "click" (fn [e]
+                               (on-click [(-> e .-latlng .-lat)
+                                          (-> e .-latlng .-lng)])))) ;;TODO Cuando se pincha el mapa
     (add-map-controllers leaflet {:zoom zoom
                                   :view view})
     ;; If the mapspec has an atom containing geometries, add watcher
