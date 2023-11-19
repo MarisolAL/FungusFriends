@@ -1,6 +1,9 @@
 (ns components.leaflet-map.views
   (:require
+   [components.leaflet-map.events :as events]
+   [components.leaflet-map.subs :as subs]
    ["leaflet" :as leaflet]
+   [re-frame.core :as rf]
    [reagent.core :as rg]))
 
 
@@ -91,8 +94,8 @@
   [leaflet {:keys [zoom view]}]
   (.on leaflet "move" (fn [_]
                         (let [c (.getCenter leaflet)]
-                          (reset! zoom (.getZoom leaflet))
-                          (reset! view [(.-lat c) (.-lng c)]))))
+                          (rf/dispatch [::events/update-zoom (.getZoom leaflet)])
+                          (rf/dispatch [::events/update-map-position [(.-lat c) (.-lng c)]]))))
   (add-watch view ::view-update
              (fn [_ _ old-view new-view]
                (when (not= old-view new-view)
@@ -105,37 +108,38 @@
 (defn mount-leaflet-map
   "Initialize LeafletJS map for a newly mounted map component."
   [data-atm]
-  (let [{:keys [layers id geometries
-                view zoom on-click]} (:mapspec (rg/state data-atm))
-        leaflet                      (js/L.map id)]
-    (.setView leaflet (clj->js @view) @zoom)
-    (add-layers leaflet layers)
-    (rg/set-state data-atm {:leaflet        leaflet
-                            :geometries-map {}})
-    #_(when on-click
-        (.on leaflet "click" (fn [e]
-                               (on-click [(-> e .-latlng .-lat)
-                                          (-> e .-latlng .-lng)])))) ;;TODO Cuando se pincha el mapa
-    (add-map-controllers leaflet {:zoom zoom
-                                  :view view})
-    ;; If the mapspec has an atom containing geometries, add watcher
-    ;; so that we update all LeafletJS objects
-    (when geometries
-      (add-watch geometries ::geometries-update
-                 (fn [_ _ _ new-geometries]
-                   (update-leaflet-geometries data-atm new-geometries))))))
+  (rg/with-let [zoom (rf/subscribe [::subs/zoom-level])
+                view (rf/subscribe [::subs/map-position])
+                geometries (rf/subscribe [::subs/geometries])]
+    (let [{:keys [layers id]} (:mapspec (rg/state data-atm))
+          leaflet                        (js/L.map id)]
+      (.setView leaflet (clj->js @view) @zoom)
+      (add-layers leaflet layers)
+      (rg/set-state data-atm {:leaflet        leaflet
+                              :geometries-map {}})
+      #_(when on-click
+          (.on leaflet "click" (fn [e]
+                                 (on-click [(-> e .-latlng .-lat)
+                                            (-> e .-latlng .-lng)])))) ;;TODO Cuando se pincha el mapa
+      (add-map-controllers leaflet {:zoom zoom
+                                    :view view})
+      ;; If the mapspec has an atom containing geometries, add watcher
+      ;; so that we update all LeafletJS objects
+      (when geometries
+        (add-watch geometries ::geometries-update
+                   (fn [_ _ _ new-geometries]
+                     (update-leaflet-geometries data-atm new-geometries)))))))
 
-(defn update-leaflet-map [data-atm]
-  (update-leaflet-geometries data-atm (-> data-atm rg/state
-                                          :mapspec :geometries
-                                          deref)))
+(defn update-leaflet-map [js-data]
+  (rg/with-let [current-geometries (rf/subscribe [::subs/geometries])]
+    (update-leaflet-geometries js-data @current-geometries)))
 
 (defn leaflet-render
   "Render function for a leaflet map."
-  [data-atm]
+  [js-data]
   (let [{map-id     :id
          map-width  :width
-         map-height :height} (-> data-atm rg/state :mapspec)]
+         map-height :height} (-> js-data rg/state :mapspec)]
     [:div {:id    map-id
            :style {:width  map-width
                    :height map-height}}]))
@@ -146,5 +150,5 @@
   (rg/create-class
    {:get-initial-state    (fn [_] {:mapspec mapspec})
     :component-did-mount  mount-leaflet-map
-    :component-did-update update-leaflet-map
+    :component-will-update update-leaflet-map ;; Change for did-update
     :render               leaflet-render}))
