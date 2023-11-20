@@ -5,7 +5,7 @@
    [re-frame.core :as rf]
    [reagent.dom :as rd]
    [reagent.core :as rg]
-   ["./front-end-api" :as fungus-api]
+   ["./front-end-api" :as fungus-api :refer (mushrooms)]
    [fungus-friends :as ff]))
 
 #_(def geometries (atom [{:type        :polygon ;; Las figuras a pintar, poner hongos aqui
@@ -33,7 +33,16 @@
 
 (defn- hello-world []
   (rg/with-let [a (rf/subscribe [::subs/db])]
-    (let [_ (println "f" fungus-api)
+    (let [
+          _ (println "f --> " fungus-api)
+          _ (println "Promise " (fungus-api/default))
+          fn-p (fn []
+                 (fungus-api/default)
+                 (.then (fungus-api/default)
+                        (fn [resultado]
+                          (println " datos " resultado))) ;; FUNCIONA
+                 )
+          _ (fn-p)
           _ (println "DB --> " @a)]
       [:div
        [ff/page]])))
