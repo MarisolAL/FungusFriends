@@ -16,3 +16,71 @@
     padding-left: 4px;
     color: #261C6B;
 }
+
+.btn {
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 8px;
+    border-radius: 4px;
+    transition-duration: 100ms;
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    line-height: 20px;
+    padding: 11px 24px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.btn > div > label {
+    cursor: pointer;
+}
+
+.btn:hover {
+    filter: brightness(.85);
+}
+
+.btn:active {
+    filter: brightness(.7);
+}
+
+.btn--secondary {
+    font-weight: 600;
+}
+
+.btn--secondary:hover {
+    filter: brightness(1);
+}
+
+.btn--secondary:active {
+    filter: brightness(1);
+}
+
+.btn__content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    column-gap: 8px;
+    white-space: nowrap;
+}
+
+.btn__content--large {
+    column-gap: 14px;
+}
+
+.btn__primary {
+    background-color: #D0376C70;
+    color: #261C6B;
+}
+
+.btn__secondary {
+    background-color: #E3C2E5;
+    color: #431E70;
+}
+
+.btn__info {
+    background-color: #6093DB50;
+    color: #261C6B;
+}
