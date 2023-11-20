@@ -1,6 +1,18 @@
 .main-container {
     height: 100%;
     width: 100%;
+    min-width: 600px;
+    min-height: 600px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-content: center;
+    flex-wrap: wrap;
+}
+
+.select__label {
+    font-weight: 600;
+    font-size: 16px;
+    padding-left: 4px;
+    color: #261C6B;
 }

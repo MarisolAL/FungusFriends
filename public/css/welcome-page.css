@@ -1,4 +1,13 @@
-.title-message {
-    flex-direction: column;
-    align-items: center;
+.welcome-page__selects-container {
+    display: flex;
+    justify-content: space-between;
+    column-gap: 20px;
+    min-width: 600px;
+    padding: 10px;
+}
+
+.welcome-page__map-container {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
 }
