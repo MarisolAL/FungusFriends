@@ -1,5 +1,8 @@
 (ns fungus-friends
   (:require
+   ["./front-end-api" :as fungus-api]
+   [clojure.string :as string]
+   [components.button :refer [button]]
    [components.leaflet-map.views :as l-map]
    [components.select :refer [select]]
    [re-frame.core :as rf]
@@ -18,30 +21,46 @@
                                :url         "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
                                :attribution "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>"}]}]]))
 
+(defn- fungus-api->colors-opt
+  "Transforms fungus-api data into a catalog for select component."
+  [opt-key-name]
+  (let [raw-data (opt-key-name (reduce (fn [m [kw val]]
+                                         (assoc m
+                                                (keyword kw) val))
+                                       {}
+                                       (js->clj fungus-api)))]
+    (sort-by :value
+             (reduce (fn [m [kw val]]
+                       (let [number-val (js/parseInt kw) ]
+                         (if (<=  0 number-val)
+                           (conj m {:value number-val
+                                    :label (string/capitalize val)})
+                           m)))
+                     []
+                     raw-data))))
+
 (defn page []
-  (rg/with-let [select-1-atm (rg/atom nil)
-                select-2-atm (rg/atom nil)]
-    [:div.main-container
-     [:h1 {:class "dark-blue"} "Welcome Fungus Friends!"]
-     [:p {:class "dark-blue"} "Here you have your fungus"]
-     [:div.welcome-page__map-container
-      [fungus-map]]
-     [:div.welcome-page__selects-container
-      [select {:label       "Select 1"
-               :placeholder "Select"
-               :options     [{:label "Option 1"
-                              :value :option-1}
-                             {:label "Option 2"
-                              :value :option-2}]
-               :value       @select-1-atm
-               :on-change   #(reset! select-1-atm %)
-               :clearable   true}]
-      [select {:label       "Select 2"
-               :placeholder "Select"
-               :options     [{:label "Option 1"
-                              :value :option-1}
-                             {:label "Option 2"
-                              :value :option-2}]
-               :value       @select-2-atm
-               :on-change   #(reset! select-2-atm %)
-               :clearable   true}]]]))
+  (rg/with-let [color-atm (rg/atom nil)
+                spot-atm (rg/atom nil)]
+    (let [_ 1]
+      [:div.main-container
+       [:h1 {:class "dark-blue"} "Welcome Fungus Friends!"]
+       [:p {:class "dark-blue"} "Here you have your fungus"]
+       [:div.welcome-page__map-container
+        [fungus-map]]
+       [:div.welcome-page__selects-container
+        [select {:label       "Spots"
+                 :placeholder "Spots"
+                 :options     (fungus-api->colors-opt :Spots)
+                 :value       @spot-atm
+                 :on-change   #(reset! spot-atm %)
+                 :clearable   true}]
+        [select {:label       "Color"
+                 :placeholder "Color"
+                 :options     (fungus-api->colors-opt :Color)
+                 :value       @color-atm
+                 :on-change   #(reset! color-atm %)
+                 :clearable   true}]
+        [button {:text     "Show mushrooms!"
+                 :color    :primary
+                 :on-click #(println "BUTTOn" @spot-atm @color-atm)}]]])))
