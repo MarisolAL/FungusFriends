@@ -17,9 +17,8 @@
 
  :builds
  {:app
-  {:target     :browser
-   :output-dir "public/js"
-   :asset-path "/js"
-   :modules
-   {:main ; becomes public/js/main.js
-    {:init-fn core/init}}}}}
+  {:target       :browser
+   :output-dir   "public/js"
+   :asset-path   "/js"
+   :modules      {:main ; becomes public/js/main.js
+                  {:init-fn core/init}}}}}
