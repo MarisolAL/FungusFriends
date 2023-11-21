@@ -20,11 +20,12 @@
   (js/L.polyline (clj->js coordinates)
                  #js {:color color}))
 
-(defmethod create-shape :point [{:keys [coordinates color]
-                                 :or   {color "#D0376C"}}]
+(defmethod create-shape :point [{:keys [coordinates color radius]
+                                 :or   {color  "#D0376C"
+                                        radius 20}}]
   (js/L.circle (clj->js (first coordinates))
-               10
-               #js {:color color}))
+               #js {:color  color
+                    :radius radius}))
 
 (defmethod create-shape :icon [{:keys [coordinates icon-url]
                                 :or   {icon-url "non-existent.jpg"}}]
