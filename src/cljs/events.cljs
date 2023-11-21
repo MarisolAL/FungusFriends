@@ -39,7 +39,7 @@
  (fn [{db :db} _]
    (let [_ 1]
      {:db (assoc db :fungus nil
-                 :geometries [{:type        :polygon ;; Las figuras a pintar, poner hongos aqui
+                 :geometries [{:type        :polygon
                                :coordinates [[65.1 25.2]
                                              [65.15 25.2]
                                              [65.125 25.3]]
@@ -52,13 +52,13 @@
                                :popup-msg   "Line"
                                :color       "#431E70"}
                               #_{:type        :icon
-                               :icon-url    "/img/dimitri.jpg"
-                               :coordinates [[65.1 25.2]]
-                               :popup-msg   "Icon"}
+                                 :icon-url    "/img/dimitri.jpg"
+                                 :coordinates [[65.1 25.2]]
+                                 :popup-msg   "Icon"}
                               {:type        :point
                                :coordinates [[65.1 25.2]]
                                :popup-msg   "Point"
                                :color       "#EB1515"
                                }]
-                 :position [65.1 25.2]
-                 :zoom-level 8)})))
+                 :position [52.0820, 5.2361]
+                 :zoom-level 12)})))

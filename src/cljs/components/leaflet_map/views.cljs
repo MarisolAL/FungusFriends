@@ -67,13 +67,13 @@
 
 (defn- update-leaflet-geometries
   "Updates the Leaflet layers based on the data, mutates the LeafletJS map object."
-  [component-atm geometries]
-  (let [{:keys [leaflet geometries-map]} (rg/state component-atm)
+  [js-data geometries]
+  (let [{:keys [leaflet geometries-map]} (rg/state js-data)
         geometries-set                   (into #{} geometries)]
     (remove-layers {:leaflet        leaflet
                     :geometries-set geometries-set
                     :geometries-map geometries-map})
-    (add-new-shapes component-atm geometries)))
+    (add-new-shapes js-data geometries)))
 
 (defn- add-layers
   "Function that adds all the layers to the map"
