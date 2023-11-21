@@ -51,13 +51,9 @@
     (loop [new-geometries-map  {}
            [geom & geometries] geometries]
       (if-not geom
-        ;; Update component state with the new geometries map
         (rg/set-state component-atm {:geometries-map new-geometries-map})
         (if-let [existing-shape (geometries-map geom)]
-          ;; Have existing shape, don't need to do anything
           (recur (assoc new-geometries-map geom existing-shape) geometries)
-
-          ;; No existing shape, create a new shape and add it to the map
           (let [shape     (create-shape geom)
                 popup-msg (:popup-msg geom)]
             (.addTo shape leaflet)
@@ -109,29 +105,22 @@
   "Initialize LeafletJS map for a newly mounted map component."
   [js-data]
   (rg/with-let [zoom       (rf/subscribe [::subs/zoom-level])
-                view       (rf/subscribe [::subs/map-position])
-                geometries (rf/subscribe [::subs/geometries])]
-    (let [{:keys [layers id]} (:map-spec (rg/state js-data))
-          leaflet             (js/L.map id)]
+                view       (rf/subscribe [::subs/map-position])]
+    (let [{:keys [layers id geometries]} (:map-spec (rg/state js-data))
+          leaflet                        (js/L.map id)]
       (.setView leaflet (clj->js @view) @zoom)
       (add-layers leaflet layers)
       (rg/set-state js-data {:leaflet        leaflet
                              :geometries-map {}})
-      #_(when on-click
-          (.on leaflet "click" (fn [e]
-                                 (on-click [(-> e .-latlng .-lat)
-                                            (-> e .-latlng .-lng)])))) ;;TODO Cuando se pincha el mapa
       (add-map-controllers leaflet {:zoom zoom
                                     :view view})
-      ;; If the map-spec has an atom containing geometries, add watcher
-      ;; so that we update all LeafletJS objects
       (when geometries
         (add-watch geometries ::geometries-update
                    (fn [_ _ _ new-geometries]
                      (update-leaflet-geometries js-data new-geometries)))))))
 
 (defn update-leaflet-map [js-data]
-  (rg/with-let [current-geometries (rf/subscribe [::subs/geometries])]
+  (let [current-geometries (:geometries (:map-spec (rg/state js-data)))]
     (update-leaflet-geometries js-data @current-geometries)))
 
 (defn leaflet-render
@@ -140,15 +129,16 @@
   (let [{map-id     :id
          map-width  :width
          map-height :height} (-> js-data rg/state :map-spec)]
-    [:div {:id    map-id
-           :style {:width  map-width
-                   :height map-height}}]))
+    (fn []
+      [:div {:id    map-id
+             :style {:width  map-width
+                     :height map-height}}])))
 
 (defn leaflet
   "A LeafletJS map component."
   [leaflet-map-spec]
   (rg/create-class
-   {:get-initial-state     (fn [_] {:map-spec leaflet-map-spec})
-    :component-did-mount   mount-leaflet-map
-    :component-will-update update-leaflet-map ;; Change for did-update
-    :render                leaflet-render}))
+   {:get-initial-state    (fn [_] {:map-spec leaflet-map-spec})
+    :component-did-mount  mount-leaflet-map
+    :component-did-update update-leaflet-map ;; Change for did-update
+    :render               leaflet-render}))

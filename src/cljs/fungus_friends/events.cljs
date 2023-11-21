@@ -4,11 +4,22 @@
    [re-frame.core :as rf]))
 
 
-(defn prop-int->value [catalogue fung-prop]
+(defn prop-int->value
+  "Takes the properties of a mushroom and returns the string value."
+  [catalogue fung-prop]
   (lower-case
    (:label
     (first
      (filter #(= fung-prop (:value %)) catalogue)))))
+
+(defn color->color-hex
+  "Takes the color value of a mushroom and returns the hex color."
+  [catalogue-color]
+  (case catalogue-color
+    "yellow" "#DAA21B"
+    "red"    "#D0376C"
+    "blue"   "#6093DB"
+    "#68DAC0"))
 
 (rf/reg-event-db
  ::set-catalogue
@@ -38,13 +49,15 @@
                                     " spots and is color "
                                     (prop-int->value all-colors color) "."))
          new-geometries      (into []
-                                   (for [{:keys [latlng]
+                                   (for [{:keys [latlng color]
                                           :as   mushroom} displayed-mushrooms]
                                      {:type        :point
                                       :coordinates [(or latlng
                                                         [65.3 25.0])]
                                       :popup-msg   (str-description mushroom)
-                                      :radius      10}))]
+                                      :radius      10
+                                      :color       (color->color-hex
+                                                    (prop-int->value all-colors color))}))]
      (assoc db
             :display-mushrooms displayed-mushrooms
             :geometries new-geometries))))
