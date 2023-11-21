@@ -84,3 +84,46 @@
     background-color: #6093DB50;
     color: #261C6B;
 }
+
+.navbar__container {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #431E70;
+    border-radius :4px;
+    height: 55px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 10px 20px;
+}
+
+.nav-bar__content {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-button__text {
+    text-align: center;
+    color: #FFFADE;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+    .nav-button__text {
+        display: block;
+    }
+}
+
+.nav-button__logo-text-container {
+    display: flex;
+    column-gap: 10px;
+    align-items: center;
+}
+
+.nav-button__logo {
+    width: 55px;
+}

@@ -8,20 +8,26 @@
    ["./front-end-api" :as fungus-api]
    [fungus-friends.views :as ff]))
 
+(defn navbar []
+  [:div.navbar__container
+   [:div.nav-bar__content
+    [:div.nav-button__logo-text-container
+     [:img.nav-button__logo {:src "/img/logo.svg"
+                             :alt "logo"}]
+     [:span.nav-button__text "Fungus Friends"]]]])
+
 
 (defn- hello-world []
-  (rg/with-let [a (rf/subscribe [::subs/db])
-                b (rg/atom nil)]
+  (rg/with-let [mushrooms-data (rg/atom nil)]
     (let [fn-p (fn []
                  (fungus-api/default)
                  (.then (fungus-api/default)
                         (fn [js-info]
-                          (reset! b js-info))))
+                          (reset! mushrooms-data js-info))))
           _    (fn-p)
-          _    (rf/dispatch [::events/set-mushrooms-data @b])
-     ;;     _    (println "DB --> " @a)
-          ]
-      [:div
+          _    (rf/dispatch [::events/set-mushrooms-data @mushrooms-data])]
+      [:<>
+       [navbar]
        [ff/page]])))
 
 

@@ -54,8 +54,7 @@
     (let [new-geometries (rf/subscribe [::subs/new-geometries])]
       (fn []
         [:div.main-container
-         [:h1 {:class "dark-blue"} "Welcome Fungus Friends!"]
-         [:p {:class "dark-blue"} "Here you have your fungus"]
+         [:h1.welcome-page__text "Welcome Fungus Friends!"]
          [:div.welcome-page__map-container
           [fungus-map new-geometries]]
          [:div.welcome-page__selects-container
