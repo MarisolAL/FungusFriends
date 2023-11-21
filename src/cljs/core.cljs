@@ -1,12 +1,12 @@
 (ns core
   (:require
+   ["./front-end-api" :as fungus-api]
    [events :as events]
-   [subs :as subs]
+   [fungus-friends.views :as ff]
    [re-frame.core :as rf]
    [reagent.dom :as rd]
    [reagent.core :as rg]
-   ["./front-end-api" :as fungus-api]
-   [fungus-friends.views :as ff]))
+   [subs :as subs]))
 
 (defn navbar []
   [:div.navbar__container

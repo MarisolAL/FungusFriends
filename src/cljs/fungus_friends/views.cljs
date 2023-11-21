@@ -49,8 +49,7 @@
                 spots-opt (fungus-api->opt :Spots)
                 color-opt (fungus-api->opt :Color)
                 _         (rf/dispatch [::events/set-catalogue :spots spots-opt])
-                _         (rf/dispatch [::events/set-catalogue :color color-opt])
-                ]
+                _         (rf/dispatch [::events/set-catalogue :color color-opt])]
     (let [new-geometries (rf/subscribe [::subs/new-geometries])]
       (fn []
         [:div.main-container
