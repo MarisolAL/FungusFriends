@@ -70,7 +70,7 @@
                    :value       @color-atm
                    :on-change   #(reset! color-atm %)
                    :clearable   true}]
-          [button {:text     "Show mushrooms!"
+          [button {:text     "Show!"
                    :color    :primary
                    :on-click #(rf/dispatch
                                [::events/set-mushroom-filter
